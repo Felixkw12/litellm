@@ -18,7 +18,7 @@ import threading
 from dataclasses import dataclass, field
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Final, Iterator, List, Optional
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -343,6 +343,30 @@ class FakeRedisList:
         popped = stored[:count]
         del stored[:count]
         return popped
+
+    async def async_drain_list_to_processing(
+        self,
+        key: str,
+        worker_id: str,
+        count: int,
+        ttl_seconds: int,
+        recovery_seconds: int,
+    ) -> list[str]:
+        self._check_up()
+        processing_key: Final = f"{key}:processing:{worker_id}"
+        pending: Final = self.items.get(processing_key, [])
+        if pending:
+            return list(pending)
+        source: Final = self.items.get(key, [])
+        moved: Final = source[:count]
+        if moved:
+            self.items[key] = source[len(moved) :]
+            self.items[processing_key] = moved
+        return list(moved)
+
+    async def async_ack_processing_list(self, key: str, worker_id: str, ttl_seconds: int) -> None:
+        self._check_up()
+        self.items.pop(f"{key}:processing:{worker_id}", None)
 
 
 @pytest.fixture
