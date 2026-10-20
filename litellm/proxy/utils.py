@@ -267,6 +267,7 @@ from litellm.repositories.verification_token_repository import (
     VerificationTokenRepository,
 )
 from litellm.router_utils.common_utils import resolve_model_group_alias
+from litellm.router_utils.deployment_pricing import deployment_pricing_models
 from litellm.secret_managers.main import str_to_bool
 from litellm.types.integrations.slack_alerting import DEFAULT_ALERT_TYPES
 from litellm.types.llms.openai import ResponsesAPIResponse
@@ -1233,7 +1234,7 @@ def _estimated_input_cost(
     model: Final = str(model_call_details.get("model") or "")
     custom_llm_provider: Final = str(model_call_details.get("custom_llm_provider") or "") or None
     custom_cost_per_token: Final = _deployment_cost_per_token(deployment_id, model)
-    pricing_models: Final = (base_model, model) if base_model is not None else (model,)
+    pricing_models: Final = deployment_pricing_models(base_model, model)
     candidate_costs: Final = (
         _priced_input_cost(pricing_model, custom_llm_provider, prompt_tokens, custom_cost_per_token)
         for pricing_model in pricing_models
