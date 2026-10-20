@@ -249,5 +249,11 @@
       "/v1/responses",
       "/v1/messages"
     ]
+  },
+  "opper": {
+    "base_url": "https://api.opper.ai/v3/compat",
+    "api_key_env": "OPPER_API_KEY",
+    "api_base_env": "OPPER_API_BASE",
+    "supported_endpoints": ["/v1/chat/completions", "/v1/responses", "/v1/messages"]
   }
 }
